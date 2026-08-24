@@ -1,132 +1,29 @@
-# AlzCloud
+# Welcome to your Lovable project
 
-A full-stack SaaS file hosting platform that uses **Telegram as a storage backend** — zero storage costs, unlimited capacity.
+This project was built with [Lovable](https://lovable.dev).
 
----
+## Build with Lovable
 
-## Features
+Open your project in the [Lovable editor](https://lovable.dev) and keep building.
 
-- Anonymous uploads on the home page — no account needed, up to 500MB
-- Upload files, images, videos, audio to Telegram
-- Instant public shareable links, with live preview for images/video/audio/PDF
-- User accounts with plan-based limits (unlimited storage on Free, capped only per-file)
-- Named API apps — multiple keys per account, quota'd per plan per month
-- Paystack payment integration (NGN), monthly or yearly billing
-- Download stats per file
-- Admin panel (user management, plan control)
-- Mobile-first, light-theme UI
+- **Ship faster**: describe what you want to build and Lovable handles the code.
+- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
+- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
 
-## Plans
+## Development
 
-| Plan | Storage | File size | Price |
-|------|---------|-----------|-------|
-| Free | Unlimited | 500MB | ₦0 |
-| Starter | 100GB | 1GB | ₦3,000/mo · ₦25,000/yr |
-| Pro | 500GB | 2GB | ₦5,000/mo · ₦30,000/yr |
+Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
-Starter includes up to 5 new API apps/month; Pro includes up to 10. Anonymous (logged-out) uploads are capped at 500MB with no account.
-
----
-
-## Setup
-
-### 1. Prerequisites
-
-- Node.js 18+
-- PostgreSQL database
-- Telegram bot token + channel (for uploads)
-- Telegram **user account** (for MTProto storage — separate from the bot)
-- Paystack account
-
-### 2. Create Telegram Bot & Channel
-
-1. Message [@BotFather](https://t.me/BotFather) → `/newbot` → copy the token
-2. Create a private Telegram channel
-3. Add your bot as an **admin** with permission to post messages
-4. Get the channel ID:
-   - Forward a message from the channel to [@username_to_id_bot](https://t.me/username_to_id_bot)
-   - Or use: `https://api.telegram.org/bot<TOKEN>/getUpdates` and post to the channel
-
-### 3. Get MTProto Credentials & Generate a Session
-
-Uploads/downloads go through a Telegram **user** client (GramJS), not the bot, since the Bot API caps files at 20MB.
-
-1. Go to [my.telegram.org/apps](https://my.telegram.org/apps) and log in with the phone number you want to use for storage
-2. Create an app — copy the `api_id` and `api_hash` into `TELEGRAM_API_ID` / `TELEGRAM_API_HASH` in `.env`
-3. Run `npm install` first (needed for the `telegram` + `input` packages), then:
-   ```bash
-   node scripts/gen_session.js
-   ```
-4. Follow the prompts (phone number, login code, 2FA if enabled) — copy the printed session string into `TELEGRAM_SESSION` in `.env`
-
-Keep all three of these secret — never commit `.env`, and never hardcode them in source.
-
-### 4. Install & Configure
-
-```bash
-git clone <repo>
-cd alzcloud
-npm install
-cp .env.example .env
-# Edit .env with your values
+```sh
+git clone <this-repository-url>
+cd <repository-name>
+npm i
+npm run dev
 ```
 
-### 5. Database Setup
+## Built with
 
-Create a PostgreSQL database:
-```sql
-CREATE DATABASE alzcloud;
-```
-
-The app auto-creates all tables on first start.
-
-### 6. Make yourself admin
-
-After registering your account, run:
-```sql
-UPDATE users SET is_admin = true WHERE email = 'your@email.com';
-```
-
-### 7. Run
-
-```bash
-npm start         # production
-npm run dev       # development (nodemon)
-```
-
----
-
-## Deployment
-
-### Fly.io
-
-```bash
-fly launch
-fly secrets set DATABASE_URL="..." TELEGRAM_BOT_TOKEN="..." TELEGRAM_CHANNEL_ID="..." PAYSTACK_SECRET_KEY="..." SESSION_SECRET="..."
-fly deploy
-```
-
-### Render / Railway
-
-Set the environment variables from `.env.example` in the dashboard and deploy.
-
----
-
-## API Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/f/:slug` | View/download a file |
-| POST | `/upload` | Upload a file (auth required) |
-| DELETE | `/files/:id` | Delete a file (auth required) |
-| GET | `/billing/upgrade/:plan` | Start Paystack checkout |
-
----
-
-## Tech Stack
-
-- **Backend:** Node.js + Express
-- **Database:** PostgreSQL
-- **Storage:** Telegram Bot API
-- **Payments:** Paystack
-- **Frontend:** EJS + Vanilla CSS + JS
+- TanStack Start
+- TypeScript
+- React
+- Tailwind CSS
