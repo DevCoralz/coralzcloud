@@ -19,7 +19,7 @@ export function HeroSection() {
 
         <div className="mt-9 flex flex-col gap-3.5">
           <Link
-            to="/"
+            to="/register"
             className="flex items-center justify-between rounded-xl bg-primary px-7 py-4 text-lg font-medium text-primary-foreground transition-transform duration-200 hover:-translate-y-0.5"
           >
             <span className="flex-1 text-center">Get Started Free</span>

@@ -9,7 +9,7 @@ export function Logo() {
         />
         <path
           fill="var(--color-surface)"
-          d="M20.2 9.3c.8 0 1.4.6 1.4 1.4v5.1h1.9c.6 0 .9.7.5 1.1l-3.3 3.4a.9.9 0 0 1-1.3 0l-3.3-3.4c-.4-.4-.1-1.1.5-1.1h1.9v-5.1c0-.8.6-1.4 1.4-1.4Z"
+          d="M19.5 8.7a.9.9 0 0 1 1.3 0l3.3 3.4c.4.4.1 1.1-.5 1.1h-1.9v5.1c0 .8-.6 1.4-1.4 1.4s-1.4-.6-1.4-1.4v-5.1h-1.9c-.6 0-.9-.7-.5-1.1l3-3.4Z"
         />
       </svg>
       <span className="text-[1.28rem] font-bold sm:text-[1.6rem] tracking-tight">

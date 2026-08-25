@@ -42,6 +42,8 @@
   --animate-float-slow: float-slow 7s ease-in-out infinite;
   --animate-float-soft: float-soft 5.5s ease-in-out infinite;
   --animate-drift: drift 9s ease-in-out infinite;
+  --animate-orbit: orbit 30s linear infinite;
+  --animate-orbit-counter: orbit-counter 30s linear infinite;
   --animate-rise: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -99,6 +101,24 @@
   50% {
     transform: translate3d(4px, -12px, 0);
     opacity: 1;
+  }
+}
+
+@keyframes orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbit-counter {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
   }
 }
 
