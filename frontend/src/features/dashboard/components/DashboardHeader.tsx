@@ -1,0 +1,71 @@
+import { Bell, ChevronDown, Menu, User, X } from "lucide-react";
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { Logo } from "@/components/layout/Logo";
+import { site } from "@/config/site";
+
+export function DashboardHeader() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-md">
+      <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-3 sm:px-8">
+        <button
+          type="button"
+          aria-label={open ? "Close menu" : "Open menu"}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="-ml-1 flex size-10 shrink-0 items-center justify-center rounded-xl text-foreground transition-colors hover:bg-secondary active:scale-95"
+        >
+          {open ? <X className="size-6" /> : <Menu className="size-6" strokeWidth={2.25} />}
+        </button>
+
+        <Link to="/" aria-label={site.name} className="ml-1">
+          <Logo />
+        </Link>
+
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Notifications, 3 unread"
+            className="relative flex size-10 items-center justify-center rounded-xl transition-colors hover:bg-secondary active:scale-95"
+          >
+            <Bell className="size-6" strokeWidth={2} />
+            <span className="absolute -top-0.5 right-0.5 flex size-[18px] items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground ring-2 ring-background">
+              3
+            </span>
+          </button>
+
+          <button
+            type="button"
+            aria-label="Account menu"
+            className="flex items-center gap-1 rounded-full transition-opacity hover:opacity-85 active:scale-95"
+          >
+            <span className="flex size-10 items-center justify-center overflow-hidden rounded-full bg-foreground text-background">
+              <User className="size-5" strokeWidth={2} />
+            </span>
+            <ChevronDown className="size-4 text-muted-foreground" />
+          </button>
+        </div>
+      </div>
+
+      {open && (
+        <nav className="mx-auto max-w-5xl animate-rise px-5 pb-3 sm:px-8">
+          <ul className="flex flex-col gap-1 sm:flex-row sm:gap-6">
+            {site.nav.map((item) => (
+              <li key={item.label}>
+                <Link
+                  to={item.to}
+                  onClick={() => setOpen(false)}
+                  className="block rounded-md px-1 py-2 text-[0.95rem] text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+    </header>
+  );
+}
