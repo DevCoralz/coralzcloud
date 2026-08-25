@@ -1,17 +1,23 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { User, Mail, AtSign, Lock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ApiError } from "@/lib/api/client";
+import { useAuth } from "@/lib/auth/AuthContext";
 import { AuthLayout } from "./components/AuthLayout";
 import { AuthCheckbox } from "./components/AuthCheckbox";
 import { AuthField } from "./components/AuthField";
 import { GoogleButton } from "./components/GoogleButton";
 import { AuthDivider } from "./components/AuthDivider";
 
-type Errors = Partial<Record<"fullName" | "email" | "username" | "password" | "confirm" | "terms", string>>;
+type Errors = Partial<
+  Record<"fullName" | "email" | "username" | "password" | "confirm" | "terms" | "form", string>
+>;
 
 export function RegisterPage() {
+  const { register } = useAuth();
+  const navigate = useNavigate();
   const [values, setValues] = useState({
     fullName: "",
     email: "",
@@ -21,12 +27,12 @@ export function RegisterPage() {
   });
   const [agreed, setAgreed] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const set = (key: keyof typeof values) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setValues((v) => ({ ...v, [key]: e.target.value }));
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const next: Errors = {};
     if (!values.fullName.trim()) next.fullName = "Enter your full name";
@@ -36,9 +42,26 @@ export function RegisterPage() {
     if (values.confirm !== values.password) next.confirm = "Passwords do not match";
     if (!agreed) next.terms = "Please accept the Terms of Service";
     setErrors(next);
-    if (Object.keys(next).length === 0) {
-      // Frontend-only placeholder — no account is created yet.
-      setSubmitted(true);
+    if (Object.keys(next).length > 0) return;
+
+    setIsSubmitting(true);
+    try {
+      await register({
+        username: values.username.trim(),
+        email: values.email.trim(),
+        password: values.password,
+      });
+      navigate({ to: "/dashboard" });
+    } catch (err) {
+      if (err instanceof ApiError && err.fields) {
+        setErrors(err.fields as Errors);
+      } else if (err instanceof ApiError) {
+        setErrors({ form: err.message });
+      } else {
+        setErrors({ form: "Something went wrong. Please try again." });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -109,18 +132,17 @@ export function RegisterPage() {
           {errors.terms && <p className="mt-2 text-xs font-medium text-destructive">{errors.terms}</p>}
         </div>
 
+        {errors.form && (
+          <p className="text-center text-sm font-medium text-destructive">{errors.form}</p>
+        )}
+
         <Button
           type="submit"
+          disabled={isSubmitting}
           className="h-[3.35rem] w-full rounded-xl text-[1.05rem] font-semibold shadow-none"
         >
-          Create Account
+          {isSubmitting ? "Creating account..." : "Create Account"}
         </Button>
-
-        {submitted && (
-          <p className="text-center text-sm font-medium text-primary">
-            Looks good — account creation is coming in the next phase.
-          </p>
-        )}
 
         <AuthDivider />
 

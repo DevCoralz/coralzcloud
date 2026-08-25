@@ -1,11 +1,21 @@
-import { Bell, ChevronDown, Menu, User, X } from "lucide-react";
+import { Bell, ChevronDown, Menu, User, X, LogOut } from "lucide-react";
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Logo } from "@/components/layout/Logo";
 import { site } from "@/config/site";
+import { useAuth } from "@/lib/auth/AuthContext";
 
 export function DashboardHeader() {
   const [open, setOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    setAccountOpen(false);
+    await logout();
+    navigate({ to: "/login" });
+  }
 
   return (
     <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-md">
@@ -24,7 +34,7 @@ export function DashboardHeader() {
           <Logo />
         </Link>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="relative ml-auto flex items-center gap-2">
           <button
             type="button"
             aria-label="Notifications, 3 unread"
@@ -39,6 +49,8 @@ export function DashboardHeader() {
           <button
             type="button"
             aria-label="Account menu"
+            aria-expanded={accountOpen}
+            onClick={() => setAccountOpen((v) => !v)}
             className="flex items-center gap-1 rounded-full transition-opacity hover:opacity-85 active:scale-95"
           >
             <span className="flex size-10 items-center justify-center overflow-hidden rounded-full bg-foreground text-background">
@@ -46,6 +58,27 @@ export function DashboardHeader() {
             </span>
             <ChevronDown className="size-4 text-muted-foreground" />
           </button>
+
+          {accountOpen && (
+            <div className="shadow-soft absolute right-0 top-12 z-40 w-56 animate-rise overflow-hidden rounded-2xl border border-hairline bg-surface">
+              {user && (
+                <div className="border-b border-hairline px-4 py-3">
+                  <p className="truncate text-[0.95rem] font-semibold text-foreground">
+                    {user.displayName || user.username}
+                  </p>
+                  <p className="truncate text-[0.85rem] text-muted-foreground">{user.email}</p>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 px-4 py-3 text-left text-[0.95rem] font-medium text-destructive transition-colors hover:bg-secondary/50"
+              >
+                <LogOut className="size-4" strokeWidth={2} />
+                Log out
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

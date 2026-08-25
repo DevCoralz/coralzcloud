@@ -1,47 +1,41 @@
-/** Frontend-only mock data for the dashboard. No backend yet. */
-
 export type FileKind = "pdf" | "sheet" | "doc" | "image" | "video" | "archive";
 
-export const storage = {
-  usedLabel: "32.5 GB",
-  totalLabel: "50 GB",
-  percent: 65,
-  freeLabel: "17.5 GB free",
-};
-
-export const folders = [
-  { id: "documents", name: "Documents", count: 32 },
-  { id: "projects", name: "Projects", count: 18 },
-  { id: "photos", name: "Photos", count: 124 },
-  { id: "videos", name: "Videos", count: 64 },
-];
-
-export const files: {
+export type FileEntry = {
   id: string;
   name: string;
+  kind: FileKind;
+  starred: boolean;
   date: string;
   size: string;
-  kind: FileKind;
-  starred?: boolean;
-}[] = [
-  {
-    id: "1",
-    name: "Project Proposal.pdf",
-    date: "May 24, 2024",
-    size: "2.4 MB",
-    kind: "pdf",
-    starred: true,
-  },
-  { id: "2", name: "Budget.xlsx", date: "May 23, 2024", size: "1.1 MB", kind: "sheet" },
-  { id: "3", name: "Meeting Notes.docx", date: "May 22, 2024", size: "534 KB", kind: "doc" },
-  {
-    id: "4",
-    name: "Design Mockup.png",
-    date: "May 21, 2024",
-    size: "2.7 MB",
-    kind: "image",
-    starred: true,
-  },
-  { id: "5", name: "Product Demo.mp4", date: "May 20, 2024", size: "45.6 MB", kind: "video" },
-  { id: "6", name: "Archive.zip", date: "May 19, 2024", size: "12.8 MB", kind: "archive" },
-];
+};
+
+export type FolderEntry = {
+  id: string;
+  name: string;
+  count: number;
+};
+
+export type StorageSummary = {
+  percent: number;
+  usedLabel: string;
+  totalLabel: string;
+  freeLabel: string;
+};
+
+/**
+ * Placeholder data for the dashboard UI. File/folder management and
+ * real storage accounting are implemented in a later phase (see
+ * docs/ARCHITECTURE.md — Phase 4). This keeps the existing dashboard
+ * components rendering without changing their design.
+ */
+
+export const storage: StorageSummary = {
+  percent: 0,
+  usedLabel: "0 MB",
+  totalLabel: "5 GB",
+  freeLabel: "5 GB free",
+};
+
+export const folders: FolderEntry[] = [];
+
+export const files: FileEntry[] = [];
