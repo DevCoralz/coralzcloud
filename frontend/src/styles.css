@@ -38,6 +38,7 @@
   --color-ring: var(--ring);
   --color-surface: var(--surface);
   --color-wave: var(--wave);
+  --color-hairline: var(--hairline);
   --color-file-pdf: var(--file-pdf);
   --color-file-sheet: var(--file-sheet);
   --color-file-doc: var(--file-doc);
@@ -76,6 +77,7 @@
   --ring: oklch(0.45 0.26 265);
   --surface: oklch(1 0 0);
   --wave: oklch(0.945 0.015 265);
+  --hairline: oklch(0.945 0.005 264);
   --file-pdf: oklch(0.58 0.21 27);
   --file-sheet: oklch(0.62 0.16 152);
   --file-doc: oklch(0.55 0.2 262);
@@ -84,6 +86,7 @@
   --file-archive: oklch(0.62 0.008 264);
   --gradient-royal: linear-gradient(115deg, oklch(0.4 0.24 266) 0%, oklch(0.47 0.27 264) 55%, oklch(0.44 0.26 268) 100%);
   --shadow-panel: 0 1px 2px oklch(0.16 0.02 264 / 0.04), 0 8px 24px -14px oklch(0.16 0.02 264 / 0.18);
+  --shadow-soft: 0 1px 2px oklch(0.16 0.02 264 / 0.03), 0 6px 20px -16px oklch(0.16 0.02 264 / 0.22);
   --shadow-royal: 0 12px 28px -12px oklch(0.45 0.26 265 / 0.45);
 }
 
@@ -93,6 +96,10 @@
 
 @utility shadow-panel {
   box-shadow: var(--shadow-panel);
+}
+
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
 }
 
 @utility shadow-royal {

@@ -20,7 +20,7 @@ export function FoldersRow() {
           <li key={folder.id} className="w-[42%] min-w-[148px] max-w-[190px] shrink-0 snap-start sm:w-auto sm:flex-1">
             <button
               type="button"
-              className="shadow-panel flex w-full flex-col rounded-2xl border border-border bg-surface p-4 text-left transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
+              className="shadow-soft flex w-full flex-col rounded-2xl bg-surface p-4 text-left transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
             >
               <span className="flex items-start justify-between">
                 <Folder className="size-7 fill-primary text-primary" strokeWidth={1.5} />

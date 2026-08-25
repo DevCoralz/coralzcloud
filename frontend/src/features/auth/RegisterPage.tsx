@@ -4,6 +4,7 @@ import { User, Mail, AtSign, Lock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { AuthLayout } from "./components/AuthLayout";
+import { AuthCheckbox } from "./components/AuthCheckbox";
 import { AuthField } from "./components/AuthField";
 import { GoogleButton } from "./components/GoogleButton";
 import { AuthDivider } from "./components/AuthDivider";
@@ -98,12 +99,8 @@ export function RegisterPage() {
 
         <div>
           <label className="flex cursor-pointer items-start gap-3 text-[0.95rem] text-foreground">
-            <input
-              type="checkbox"
-              checked={agreed}
-              onChange={(e) => setAgreed(e.target.checked)}
-              className="mt-0.5 size-[1.15rem] cursor-pointer appearance-none rounded-[0.3rem] border border-border bg-surface transition-colors checked:border-primary checked:bg-primary checked:bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22white%22 stroke-width=%223%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%2220 6 9 17 4 12%22/></svg>')] checked:bg-center checked:bg-no-repeat"
-            />
+            <AuthCheckbox checked={agreed} onCheckedChange={setAgreed} className="mt-0.5" />
+
             <span>
               I agree to the <span className="font-medium text-primary">Terms of Service</span> and{" "}
               <span className="font-medium text-primary">Privacy Policy</span>

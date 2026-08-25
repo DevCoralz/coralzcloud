@@ -13,7 +13,7 @@ export function QuickActions() {
   return (
     <section
       aria-label="Quick actions"
-      className="shadow-panel rounded-3xl border border-border bg-surface px-2 py-5"
+      className="px-0 py-1"
     >
       <ul className="flex items-start justify-between gap-1">
         {actions.map(({ label, icon: Icon, filled }) => (

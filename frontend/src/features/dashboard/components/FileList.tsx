@@ -1,24 +1,6 @@
-import {
-  Archive,
-  FileSpreadsheet,
-  FileText,
-  Image as ImageIcon,
-  MoreVertical,
-  Play,
-  SlidersHorizontal,
-  Star,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { files, type FileKind } from "../data";
-
-const kindStyles: Record<FileKind, { icon: LucideIcon; className: string }> = {
-  pdf: { icon: FileText, className: "bg-file-pdf" },
-  sheet: { icon: FileSpreadsheet, className: "bg-file-sheet" },
-  doc: { icon: FileText, className: "bg-file-doc" },
-  image: { icon: ImageIcon, className: "bg-file-image" },
-  video: { icon: Play, className: "bg-file-video" },
-  archive: { icon: Archive, className: "bg-file-archive" },
-};
+import { MoreVertical, SlidersHorizontal, Star } from "lucide-react";
+import { files } from "../data";
+import { FileTypeIcon } from "./FileTypeIcon";
 
 export function FileList() {
   return (
@@ -34,17 +16,12 @@ export function FileList() {
         </button>
       </div>
 
-      <ul className="shadow-panel mt-3 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
+      <ul className="shadow-soft mt-3 divide-y divide-hairline overflow-hidden rounded-2xl bg-surface">
         {files.map((file) => {
-          const { icon: Icon, className } = kindStyles[file.kind];
           return (
             <li key={file.id}>
-              <div className="flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-secondary/60">
-                <span
-                  className={`flex size-11 shrink-0 items-center justify-center rounded-xl text-primary-foreground ${className}`}
-                >
-                  <Icon className="size-5" strokeWidth={2.25} />
-                </span>
+              <div className="flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-secondary/50">
+                <FileTypeIcon kind={file.kind} />
 
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">

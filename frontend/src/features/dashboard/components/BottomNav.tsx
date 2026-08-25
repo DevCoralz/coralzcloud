@@ -16,7 +16,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface/95 backdrop-blur-md"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-hairline bg-surface/95 backdrop-blur-md"
     >
       <ul className="mx-auto flex max-w-5xl items-center justify-between px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-8">
         {items.map(({ label, icon: Icon }) => {
