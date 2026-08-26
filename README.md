@@ -10,30 +10,35 @@ A cloud storage application. This monorepo has two independent projects:
 ## This phase
 
 Backend foundation + authentication, connected to the existing
-Login/Register UI. See `backend/README.md` for full setup and testing
-instructions, and `frontend/README.md` for the frontend.
+Login/Register UI. The backend is packaged to run as one Pterodactyl
+server — API, local PostgreSQL, and the Cloudflare Tunnel all start
+together from a single startup command. See `backend/README.md` for
+full deployment and testing instructions, and `frontend/README.md`
+for the frontend.
 
-Quick start:
+**Backend (Pterodactyl):** build `backend/Dockerfile`, import
+`backend/docker/pterodactyl-egg.json` as an egg, create a server from
+it, fill in the handful of variables it asks for
+(`CLOUDFLARE_TUNNEL_TOKEN`, `CORS_ORIGIN`, `SESSION_SECRET`, the
+Telegram ones). No database setup — Postgres runs inside the same
+container and connects automatically. Full walkthrough in
+`backend/README.md`.
+
+**Frontend (separate, anywhere you like):**
 
 ```bash
-# 1. Backend
-cd backend
-cp .env.example .env      # fill in DATABASE_URL and SESSION_SECRET at minimum
-npm install
-npm run migrate
-npm run dev                # http://localhost:4000
-
-# 2. Frontend (separate terminal)
 cd frontend
-cp .env.example .env       # defaults to http://localhost:4000/api, adjust if needed
+cp .env.example .env       # set VITE_API_URL to your backend's tunnel URL + /api
 npm install
 npm run dev                 # http://localhost:3000
 ```
 
-Then open `http://localhost:3000`, register an account, and you should
-land on the dashboard. Refreshing keeps you signed in; logging out
-(account menu, top right of the dashboard) returns you to the login
-page.
+Open the frontend, register an account, and you should land on the
+dashboard. Refreshing keeps you signed in; logging out (account menu,
+top right of the dashboard) returns you to the login page.
+
+**Local backend development without Pterodactyl/Docker** is also
+possible — see the "Local development" section in `backend/README.md`.
 
 ## What's implemented this phase
 
@@ -44,8 +49,10 @@ page.
   everything else schema-only and ready for later phases
 - Telegram/GramJS/MTProto foundation (config + connection lifecycle
   only — no upload/download yet)
-- Backend is Cloudflare Tunnel-ready: nothing hardcodes a public URL,
-  everything comes from `backend/.env`
+- One Pterodactyl server runs the backend, its own local PostgreSQL,
+  and the Cloudflare Tunnel together — `.env` only holds real secrets
+  (tunnel token, CORS origin, session secret, Telegram credentials),
+  never a database connection string
 
 ## What's intentionally not implemented yet
 
