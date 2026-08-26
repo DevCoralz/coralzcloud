@@ -47,6 +47,7 @@ export function RegisterPage() {
     setIsSubmitting(true);
     try {
       await register({
+        fullName: values.fullName.trim(),
         username: values.username.trim(),
         email: values.email.trim(),
         password: values.password,

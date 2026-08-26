@@ -14,7 +14,12 @@ const CURRENT_USER_QUERY_KEY = ["auth", "me"] as const;
 type AuthContextValue = {
   user: User | null;
   isLoading: boolean;
-  register: (input: { username: string; email: string; password: string }) => Promise<User>;
+  register: (input: {
+    fullName: string;
+    username: string;
+    email: string;
+    password: string;
+  }) => Promise<User>;
   login: (input: { identifier: string; password: string }) => Promise<User>;
   logout: () => Promise<void>;
 };
