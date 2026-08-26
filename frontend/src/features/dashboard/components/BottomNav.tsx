@@ -16,9 +16,13 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-hairline bg-surface/95 backdrop-blur-md"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white"
+      style={{
+        boxShadow: "0 -2px 8px rgba(0,0,0,0.06)",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}
     >
-      <ul className="mx-auto flex max-w-5xl items-center justify-between px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-8">
+      <ul className="mx-auto flex max-w-5xl items-center justify-around px-4 pt-2 pb-2">
         {items.map(({ label, icon: Icon }) => {
           const isActive = active === label;
           return (
@@ -27,12 +31,19 @@ export function BottomNav() {
                 type="button"
                 onClick={() => setActive(label)}
                 aria-current={isActive ? "page" : undefined}
-                className={`flex w-full flex-col items-center gap-1.5 rounded-xl py-1 transition-colors ${
-                  isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                }`}
+                className="flex w-full flex-col items-center gap-0.5"
               >
-                <Icon className="size-6" strokeWidth={isActive ? 2.4 : 2} />
-                <span className="text-[0.78rem] font-medium">{label}</span>
+                <Icon
+                  className="size-6"
+                  strokeWidth={isActive ? 2.5 : 1.8}
+                  style={{ color: isActive ? "#2563EB" : "#9E9E9E" }}
+                />
+                <span
+                  className="text-xs font-medium"
+                  style={{ color: isActive ? "#2563EB" : "#9E9E9E" }}
+                >
+                  {label}
+                </span>
               </button>
             </li>
           );

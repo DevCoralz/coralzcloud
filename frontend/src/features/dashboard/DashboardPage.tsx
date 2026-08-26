@@ -14,7 +14,7 @@ export function DashboardPage() {
       <div className="min-h-screen bg-background">
         <DashboardHeader />
 
-        <main className="mx-auto max-w-5xl space-y-6 px-5 pb-32 pt-2 sm:px-8">
+        <main className="mx-auto max-w-5xl space-y-5 px-4 pb-28 pt-3 sm:px-6 md:space-y-6 lg:px-8">
           <h1 className="sr-only">My Drive</h1>
           <div className="animate-rise">
             <SearchBar />
@@ -32,9 +32,9 @@ export function DashboardPage() {
         <button
           type="button"
           aria-label="Upload files"
-          className="shadow-royal fixed bottom-24 right-5 z-30 flex size-16 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform hover:scale-105 active:scale-95 sm:right-8"
+          className="fixed bottom-20 right-4 z-40 flex size-[52px] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95 sm:right-6 sm:bottom-24 md:bottom-28 md:right-8 md:size-14"
         >
-          <UploadCloud className="size-7" strokeWidth={2.25} />
+          <UploadCloud className="size-6 md:size-7" strokeWidth={2.25} />
         </button>
 
         <BottomNav />

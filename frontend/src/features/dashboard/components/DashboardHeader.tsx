@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, Menu, User, X, LogOut } from "lucide-react";
+import { ChevronDown, Menu, User, X, LogOut } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Logo } from "@/components/layout/Logo";
@@ -19,7 +19,7 @@ export function DashboardHeader() {
 
   return (
     <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-md">
-      <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-3 sm:px-8">
+      <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:px-6 md:px-8">
         <button
           type="button"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -35,17 +35,6 @@ export function DashboardHeader() {
         </Link>
 
         <div className="relative ml-auto flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="Notifications, 3 unread"
-            className="relative flex size-10 items-center justify-center rounded-xl transition-colors hover:bg-secondary active:scale-95"
-          >
-            <Bell className="size-6" strokeWidth={2} />
-            <span className="absolute -top-0.5 right-0.5 flex size-[18px] items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground ring-2 ring-background">
-              3
-            </span>
-          </button>
-
           <button
             type="button"
             aria-label="Account menu"
@@ -83,7 +72,7 @@ export function DashboardHeader() {
       </div>
 
       {open && (
-        <nav className="mx-auto max-w-5xl animate-rise px-5 pb-3 sm:px-8">
+        <nav className="mx-auto max-w-5xl animate-rise px-4 pb-3 sm:px-6 md:px-8">
           <ul className="flex flex-col gap-1 sm:flex-row sm:gap-6">
             {site.nav.map((item) => (
               <li key={item.label}>
