@@ -1,4 +1,21 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const RAW_API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
+// VITE_API_URL must be an absolute URL (with scheme). If someone sets it to
+// a bare host like "api.cloud.coralz.de5.net" (no https://), fetch() treats
+// it as a relative path against the frontend's own origin instead of the
+// API host, and requests silently go to the wrong place. Catch that early
+// with a loud console error instead of letting every request fail with a
+// generic "Something went wrong".
+if (!/^https?:\/\//i.test(RAW_API_URL)) {
+  // eslint-disable-next-line no-console
+  console.error(
+    `[api/client] VITE_API_URL is missing a scheme: "${RAW_API_URL}". ` +
+      `It must start with http:// or https://, e.g. "https://api.cloud.coralz.de5.net/api". ` +
+      `Falling back to https:// — fix the env var to silence this.`
+  );
+}
+
+const API_URL = /^https?:\/\//i.test(RAW_API_URL) ? RAW_API_URL : `https://${RAW_API_URL}`;
 
 export class ApiError extends Error {
   status: number;
@@ -30,18 +47,34 @@ type RequestOptions = {
  * response shape every time.
  */
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    method: options.method || "GET",
-    headers: options.body ? { "Content-Type": "application/json" } : undefined,
-    credentials: "include",
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      method: options.method || "GET",
+      headers: options.body ? { "Content-Type": "application/json" } : undefined,
+      credentials: "include",
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    });
+  } catch (err) {
+    // fetch() throws a generic TypeError ("Failed to fetch" / "Load failed")
+    // for network-level failures: DNS errors, the API being down, or a CORS
+    // rejection (e.g. backend sending Access-Control-Allow-Origin: * while
+    // credentials: "include" is set, which browsers reject outright). These
+    // never reach response.ok below, so without this they'd surface to the
+    // user as a bare "Something went wrong" with the real cause invisible.
+    console.error(`[api/client] Network/CORS failure calling ${API_URL}${path}:`, err);
+    throw new ApiError(
+      "Could not reach the server. This is usually a network or CORS problem — check the console for details.",
+      { status: 0, code: "NETWORK_ERROR" }
+    );
+  }
 
   const isJson = response.headers.get("content-type")?.includes("application/json");
   const data = isJson ? await response.json().catch(() => null) : null;
 
   if (!response.ok) {
     const message = data?.error?.message || "Something went wrong. Please try again.";
+    console.error(`[api/client] ${options.method || "GET"} ${path} -> ${response.status}`, data);
     throw new ApiError(message, {
       status: response.status,
       code: data?.error?.code,

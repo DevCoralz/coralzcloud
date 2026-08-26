@@ -47,6 +47,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
+        {typeof window !== "undefined" &&
+          new URLSearchParams(window.location.search).get("debug") === "1" && (
+            <pre className="mt-4 max-h-48 overflow-auto rounded-md bg-muted p-3 text-left text-xs text-muted-foreground">
+              {error.message}
+              {error.stack ? `\n\n${error.stack}` : ""}
+            </pre>
+          )}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -102,6 +109,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+// Eruda: mobile devtools console, loaded from CDN and only initialized when
+// ?debug=1 is in the URL — so it never ships to normal users, but you can
+// turn it on live on your phone by opening e.g.
+// https://cloud.coralz.de5.net/login?debug=1
+// It shows console.error output (including the [api/client] logs added
+// above), network requests/responses, and any thrown errors — enough to see
+// the real cause instead of the generic "Something went wrong" screen.
+const ERUDA_INIT_SCRIPT = `
+  (function () {
+    if (typeof window === "undefined") return;
+    var params = new URLSearchParams(window.location.search);
+    if (params.get("debug") !== "1") return;
+    var script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/eruda";
+    script.onload = function () {
+      window.eruda && window.eruda.init();
+    };
+    document.body.appendChild(script);
+  })();
+`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
@@ -110,6 +138,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <script dangerouslySetInnerHTML={{ __html: ERUDA_INIT_SCRIPT }} />
         <Scripts />
       </body>
     </html>
