@@ -26,7 +26,12 @@ def set_session_cookie(response: Response, token: str) -> None:
     )
 
 
-@router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register",
+    response_model=AuthResponse,
+    response_model_by_alias=True,
+    status_code=status.HTTP_201_CREATED,
+)
 def register(payload: RegisterRequest, response: Response, db: Session = Depends(get_db)):
     email = str(payload.email).lower()
     username = payload.username.lower()
@@ -34,8 +39,14 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
     existing = db.scalar(select(User).where(or_(User.email == email, User.username == username)))
     if existing:
         if existing.email == email:
-            raise HTTPException(status_code=409, detail="Email is already registered")
-        raise HTTPException(status_code=409, detail="Username is already taken")
+            raise HTTPException(
+                status_code=409,
+                detail={"field": "email", "message": "Email is already registered"},
+            )
+        raise HTTPException(
+            status_code=409,
+            detail={"field": "username", "message": "Username is already taken"},
+        )
 
     user = User(
         full_name=payload.full_name,
@@ -55,7 +66,7 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
     return AuthResponse(user=UserResponse.model_validate(user))
 
 
-@router.post("/login", response_model=AuthResponse)
+@router.post("/login", response_model=AuthResponse, response_model_by_alias=True)
 def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
     identifier = payload.identifier.strip().lower()
     user = db.scalar(select(User).where(or_(User.email == identifier, User.username == identifier)))
@@ -74,6 +85,6 @@ def logout(response: Response):
     response.delete_cookie(key=settings.auth_cookie_name, path="/")
 
 
-@router.get("/me", response_model=AuthResponse)
+@router.get("/me", response_model=AuthResponse, response_model_by_alias=True)
 def me(user: User = Depends(get_current_user)):
     return AuthResponse(user=UserResponse.model_validate(user))

@@ -11,7 +11,8 @@ import sys
 if __package__ in (None, ""):
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -20,6 +21,56 @@ from app.core.config import settings
 from app.services.telegram import TelegramStorageService
 
 app = FastAPI(title="Coralz Cloud API", version="1.0.0")
+
+
+# The frontend's request() in lib/api/client.ts reads errors as
+# data?.error?.message and data?.error?.fields — a shape FastAPI does not
+# produce by default. HTTPException(detail=...) serializes to {"detail":
+# "..."}, and unhandled validation errors serialize to {"detail": [...]}.
+# Both left every backend error falling through to the frontend's generic
+# "Something went wrong" fallback, so the two handlers below translate
+# FastAPI's default shapes into {"error": {"message", "code", "fields"}}
+# for every route, not just auth — no per-route changes needed elsewhere.
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    # detail is usually a plain string ("Invalid email/username or
+    # password") -> error.message only. Routes that need to point at a
+    # specific form field (e.g. register's duplicate-email/username check)
+    # instead raise HTTPException(detail={"field": "email", "message":
+    # "..."}), which this turns into error.fields = {"email": "..."} so
+    # LoginPage/RegisterPage highlight that exact input.
+    if isinstance(exc.detail, dict) and "field" in exc.detail:
+        content = {
+            "error": {
+                "message": exc.detail.get("message", "Something went wrong."),
+                "fields": {exc.detail["field"]: exc.detail.get("message", "Invalid value")},
+            }
+        }
+    else:
+        content = {"error": {"message": exc.detail}}
+    return JSONResponse(status_code=exc.status_code, content=content, headers=exc.headers)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # Pydantic gives one entry per invalid field, e.g. loc =
+    # ("body", "email"). fields turns that into {"email": "<message>"},
+    # matching what LoginPage/RegisterPage read as err.fields to show
+    # per-field errors instead of one generic message.
+    fields: dict[str, str] = {}
+    for error in exc.errors():
+        loc = error.get("loc", ())
+        field_name = str(loc[-1]) if loc else "form"
+        fields.setdefault(field_name, error.get("msg", "Invalid value"))
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "error": {
+                "message": "Please fix the highlighted fields and try again.",
+                "fields": fields,
+            }
+        },
+    )
 
 if settings.cors_origins:
     app.add_middleware(
