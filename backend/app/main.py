@@ -72,14 +72,17 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         },
     )
 
-if settings.cors_origins:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_origins,
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type"],
-    )
+# Always registered: settings.cors_origins falls back to the local dev origins
+# when CORS_ORIGIN is unset, so a missing env var can no longer leave the API
+# without CORS headers (which made every browser login/register fail preflight
+# while curl against the same endpoints worked fine).
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+)
 
 app.include_router(auth_router)
 

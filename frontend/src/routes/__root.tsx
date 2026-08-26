@@ -106,26 +106,32 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
-// Eruda: mobile devtools console. Loads on every page load and shows as a
-// small floating icon (bottom-right) that can be tapped to open/close the
-// console panel at any time — no query param or reload needed. Shows
-// console.error/log output (including the [api/client] network/CORS logs),
-// the Network tab for every fetch, and any thrown errors.
+// Eruda: mobile devtools console (floating icon, bottom-right).
 //
-// NOTE: this currently loads for all visitors, not just you. That's fine
-// for now while debugging, but before real users are on this, gate it
-// (e.g. behind a localStorage flag you set once, or strip it in prod
-// builds) so the devtools console + network inspector isn't handed to
-// everyone.
+// Two changes from the previous version, both deliberate:
+//  1. It waits for window "load" before appending anything. Appending to
+//     <body> during hydration changed the DOM React was hydrating and
+//     produced the "A tree hydrated but some attributes ... didn't match"
+//     warning on every page.
+//  2. It is opt-in: it loads in dev, or in any build after running
+//     localStorage.setItem("coralz_debug", "1") once in the console. Real
+//     visitors no longer get a devtools console + network inspector.
 const ERUDA_INIT_SCRIPT = `
   (function () {
-    if (typeof window === "undefined") return;
-    var script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/eruda";
-    script.onload = function () {
-      window.eruda && window.eruda.init();
-    };
-    document.body.appendChild(script);
+    try {
+      var isDev = ${JSON.stringify(import.meta.env.DEV)};
+      var optedIn = false;
+      try { optedIn = window.localStorage.getItem("coralz_debug") === "1"; } catch (e) {}
+      if (!isDev && !optedIn) return;
+      var load = function () {
+        var script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/eruda";
+        script.onload = function () { window.eruda && window.eruda.init(); };
+        document.body.appendChild(script);
+      };
+      if (document.readyState === "complete") load();
+      else window.addEventListener("load", load);
+    } catch (e) {}
   })();
 `;
 

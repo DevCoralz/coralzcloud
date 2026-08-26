@@ -20,8 +20,8 @@ def set_session_cookie(response: Response, token: str) -> None:
         value=token,
         max_age=settings.auth_cookie_max_age,
         httponly=True,
-        secure=settings.is_production,
-        samesite="lax",
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
         path="/",
     )
 
@@ -82,7 +82,15 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(response: Response):
-    response.delete_cookie(key=settings.auth_cookie_name, path="/")
+    # The delete must repeat the same flags used when setting the cookie, or the
+    # browser treats it as a different cookie and the session survives logout.
+    response.delete_cookie(
+        key=settings.auth_cookie_name,
+        path="/",
+        httponly=True,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+    )
 
 
 @router.get("/me", response_model=AuthResponse, response_model_by_alias=True)

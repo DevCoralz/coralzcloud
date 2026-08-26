@@ -25,6 +25,15 @@ class Settings(BaseSettings):
     node_env: str = "production"
     auth_cookie_name: str = "coralz_cloud_session"
     auth_cookie_max_age: int = 7 * 24 * 60 * 60
+    # Cookie flags are configurable because the correct values depend on how the
+    # app is served, and getting them wrong silently breaks login (the browser
+    # accepts the response but drops the cookie, so /api/auth/me stays 401):
+    #  - local dev over plain http://localhost -> Secure=false, SameSite=lax
+    #  - frontend and API on different hostnames (Cloudflare Tunnel setup)
+    #    -> SameSite=none REQUIRES Secure=true, otherwise Chrome rejects it.
+    # Empty = auto-derive from node_env (see cookie_secure/cookie_samesite).
+    auth_cookie_secure: str = ""
+    auth_cookie_samesite: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -93,7 +102,42 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> list[str]:
-        return [item.strip() for item in self.cors_origin.split(",") if item.strip()]
+        origins = [item.strip() for item in self.cors_origin.split(",") if item.strip()]
+        # A wildcard is incompatible with credentialed requests: the frontend
+        # sends fetch(..., credentials: "include"), and browsers reject
+        # Access-Control-Allow-Origin: * on those responses outright.
+        origins = [o for o in origins if o != "*"]
+        if not origins:
+            # Without this the CORS middleware was never registered at all, so
+            # every browser call from the dev frontend failed preflight and the
+            # UI only ever showed "Could not reach the server".
+            return [
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "http://localhost:8080",
+                "http://127.0.0.1:8080",
+            ]
+        return origins
+
+    @property
+    def cookie_secure(self) -> bool:
+        raw = self.auth_cookie_secure.strip().lower()
+        if raw in {"1", "true", "yes", "on"}:
+            return True
+        if raw in {"0", "false", "no", "off"}:
+            return False
+        # Auto: only mark Secure when every allowed origin is https, otherwise a
+        # Secure cookie set over http://localhost is discarded by the browser.
+        return all(origin.startswith("https://") for origin in self.cors_origins)
+
+    @property
+    def cookie_samesite(self) -> str:
+        raw = self.auth_cookie_samesite.strip().lower()
+        if raw in {"lax", "strict", "none"}:
+            return raw
+        # Cross-site (frontend domain != API domain) needs "none", which is only
+        # honoured together with Secure.
+        return "none" if self.cookie_secure else "lax"
 
     @property
     def is_production(self) -> bool:

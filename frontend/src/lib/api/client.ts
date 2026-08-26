@@ -1,4 +1,4 @@
-const RAW_API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const RAW_API_URL = import.meta.env["VITE_API_URL"] || "http://localhost:4000/api";
 
 // VITE_API_URL must be an absolute URL (with scheme). If someone sets it to
 // a bare host like "api.cloud.coralz.de5.net" (no https://), fetch() treats
@@ -29,8 +29,11 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
     this.status = status;
-    this.code = code;
-    this.fields = fields;
+    // Assigned conditionally: the project builds with
+    // exactOptionalPropertyTypes, under which writing `undefined` into an
+    // optional property is a type error.
+    if (code !== undefined) this.code = code;
+    if (fields !== undefined) this.fields = fields;
   }
 }
 
@@ -49,12 +52,18 @@ type RequestOptions = {
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    // Built as a RequestInit and only given headers/body when there is a
+    // body, instead of passing explicit `undefined` (rejected under
+    // exactOptionalPropertyTypes).
+    const init: RequestInit = {
       method: options.method || "GET",
-      headers: options.body ? { "Content-Type": "application/json" } : undefined,
       credentials: "include",
-      body: options.body ? JSON.stringify(options.body) : undefined,
-    });
+    };
+    if (options.body !== undefined) {
+      init.headers = { "Content-Type": "application/json" };
+      init.body = JSON.stringify(options.body);
+    }
+    response = await fetch(`${API_URL}${path}`, init);
   } catch (err) {
     // fetch() throws a generic TypeError ("Failed to fetch" / "Load failed")
     // for network-level failures: DNS errors, the API being down, or a CORS
