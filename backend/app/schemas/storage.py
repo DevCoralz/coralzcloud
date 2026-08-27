@@ -18,6 +18,12 @@ class FolderResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class FileCreate(BaseModel):
+    name: str
+    folder_id: int | None = Field(default=None, alias="folderId")
+    mime_type: str = Field(default="text/plain", alias="mimeType")
+
+
 class FileUploadResponse(BaseModel):
     id: int
     original_name: str = Field(serialization_alias="originalName")

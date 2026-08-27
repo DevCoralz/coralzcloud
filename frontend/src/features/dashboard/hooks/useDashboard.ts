@@ -9,7 +9,7 @@ export type BreadcrumbItem = {
 export function useDashboard() {
   const [folders, setFolders] = useState<FolderEntry[]>([]);
   const [files, setFiles] = useState<FileEntry[]>([]);
-  const [usage, setUsage] = useState<StorageUsage | null>(null);
+  const [usage, setUsage] = useState<StorageUsage>({ usedBytes: 0, usedLabel: "0 B", totalLabel: "50 GB", freeLabel: "50 GB free", percent: 0 });
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([
     { id: null, name: "My Drive" },
   ]);
@@ -73,6 +73,14 @@ export function useDashboard() {
     [currentFolderId, refresh],
   );
 
+  const createFile = useCallback(
+    async (name: string) => {
+      await storageApi.createFile(name, currentFolderId);
+      await refresh();
+    },
+    [currentFolderId, refresh],
+  );
+
   const deleteFile = useCallback(
     async (id: number) => {
       await storageApi.deleteFile(id);
@@ -92,6 +100,7 @@ export function useDashboard() {
     navigateToBreadcrumb,
     createFolder,
     deleteFolder,
+    createFile,
     uploadFiles,
     deleteFile,
     refresh,

@@ -4,12 +4,13 @@ import type { LucideIcon } from "lucide-react";
 type Props = {
   onUpload: () => void;
   onCreateFolder: () => void;
+  onCreateFile: () => void;
 };
 
-export function QuickActions({ onUpload, onCreateFolder }: Props) {
+export function QuickActions({ onUpload, onCreateFolder, onCreateFile }: Props) {
   const actions: { label: string; icon: LucideIcon; filled?: boolean; onClick: () => void }[] = [
     { label: "Upload", icon: Upload, filled: true, onClick: onUpload },
-    { label: "New File", icon: FilePlus, onClick: () => {} },
+    { label: "New File", icon: FilePlus, onClick: onCreateFile },
     { label: "New Folder", icon: FolderPlus, onClick: onCreateFolder },
     { label: "Scan", icon: Camera, onClick: () => {} },
     { label: "Create Link", icon: Link2, onClick: () => {} },

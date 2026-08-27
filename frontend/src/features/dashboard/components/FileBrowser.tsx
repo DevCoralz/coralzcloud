@@ -1,4 +1,4 @@
-import { ChevronRight, Download, FilePlus, Folder, FolderPlus, SlidersHorizontal, SortAsc, SortDesc, Trash2 } from "lucide-react";
+import { ChevronRight, Download, FilePlus, Folder, MoreVertical, SlidersHorizontal, SortAsc, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { FileEntry, FolderEntry } from "@/lib/api/storage";
 import { FileTypeIcon } from "./FileTypeIcon";
@@ -20,7 +20,6 @@ type Props = {
   breadcrumbs: BreadcrumbItem[];
   onNavigateToFolder: (folder: FolderEntry) => void;
   onNavigateToBreadcrumb: (index: number) => void;
-  onCreateFolder: () => void;
   onUploadFile: () => void;
   onDeleteFolder: (id: number) => void;
   onDeleteFile: (id: number) => void;
@@ -56,13 +55,13 @@ export function FileBrowser({
   breadcrumbs,
   onNavigateToFolder,
   onNavigateToBreadcrumb,
-  onCreateFolder,
   onUploadFile,
   onDeleteFolder,
   onDeleteFile,
 }: Props) {
   const [sort, setSort] = useState<SortOption>("newest");
   const [showSort, setShowSort] = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   const sortedFolders = [...folders].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -108,55 +107,39 @@ export function FileBrowser({
 
       <div className="flex items-center justify-between px-1">
         <h2 className="text-[1rem] font-bold text-foreground sm:text-[1.1rem]">Files</h2>
-        <div className="relative flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onCreateFolder}
-            className="flex items-center gap-1 text-[0.8rem] font-medium text-primary transition-opacity hover:opacity-80"
-          >
-            <FolderPlus className="size-4" />
-            New Folder
-          </button>
-          {hasItems && (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowSort(!showSort)}
-                className="flex items-center gap-1.5 text-[0.85rem] font-semibold text-primary transition-opacity hover:opacity-80"
-              >
-                Sort
-                {sort.startsWith("name") ? (
-                  <SortAsc className="size-3.5" />
-                ) : sort === "newest" ? (
-                  <SortDesc className="size-3.5" />
-                ) : (
-                  <SlidersHorizontal className="size-3.5" />
-                )}
-              </button>
-              {showSort && (
-                <div className="absolute right-0 top-8 z-20 w-44 overflow-hidden rounded-xl border border-hairline bg-white shadow-lg animate-rise">
-                  {(Object.keys(sortLabels) as SortOption[]).map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => {
-                        setSort(key);
-                        setShowSort(false);
-                      }}
-                      className={`flex w-full items-center px-3.5 py-2.5 text-left text-[0.82rem] transition-colors ${
-                        sort === key
-                          ? "bg-primary/5 font-medium text-primary"
-                          : "text-foreground hover:bg-secondary/50"
-                      }`}
-                    >
-                      {sortLabels[key]}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        {hasItems && (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowSort(!showSort)}
+              className="flex items-center gap-1.5 text-[0.85rem] font-semibold text-primary transition-opacity hover:opacity-80"
+            >
+              Sort
+              <SortAsc className="size-3.5" />
+            </button>
+            {showSort && (
+              <div className="absolute right-0 top-8 z-20 w-44 overflow-hidden rounded-xl border border-hairline bg-white shadow-lg animate-rise">
+                {(Object.keys(sortLabels) as SortOption[]).map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => {
+                      setSort(key);
+                      setShowSort(false);
+                    }}
+                    className={`flex w-full items-center px-3.5 py-2.5 text-left text-[0.82rem] transition-colors ${
+                      sort === key
+                        ? "bg-primary/5 font-medium text-primary"
+                        : "text-foreground hover:bg-secondary/50"
+                    }`}
+                  >
+                    {sortLabels[key]}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {isEmpty ? (
@@ -182,14 +165,31 @@ export function FileBrowser({
                   {folder.name}
                 </span>
               </button>
-              <button
-                type="button"
-                onClick={() => onDeleteFolder(folder.id)}
-                className="flex size-8 items-center justify-center rounded-full text-muted-foreground opacity-0 transition-all hover:bg-red-50 hover:text-red-500 active:scale-95 group-hover:opacity-100"
-                aria-label={`Delete ${folder.name}`}
-              >
-                <Trash2 className="size-3.5" />
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setOpenMenu(openMenu === `f-${folder.id}` ? null : `f-${folder.id}`)}
+                  className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary active:scale-95"
+                  aria-label={`Options for ${folder.name}`}
+                >
+                  <MoreVertical className="size-4" />
+                </button>
+                {openMenu === `f-${folder.id}` && (
+                  <div className="absolute right-0 top-9 z-20 w-40 overflow-hidden rounded-xl border border-hairline bg-white shadow-lg animate-rise">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onDeleteFolder(folder.id);
+                        setOpenMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2 px-3.5 py-2.5 text-[0.82rem] text-red-500 transition-colors hover:bg-red-50"
+                    >
+                      <Trash2 className="size-3.5" />
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
 
@@ -209,22 +209,38 @@ export function FileBrowser({
                   {formatDate(file.createdAt)} • {formatSize(file.sizeBytes)}
                 </span>
               </span>
-              <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                <a
-                  href={`/api/files/${file.id}/download`}
-                  className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:scale-95"
-                  aria-label={`Download ${file.originalName}`}
-                >
-                  <Download className="size-3.5" />
-                </a>
+              <div className="relative">
                 <button
                   type="button"
-                  onClick={() => onDeleteFile(file.id)}
-                  className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 active:scale-95"
-                  aria-label={`Delete ${file.originalName}`}
+                  onClick={() => setOpenMenu(openMenu === `fi-${file.id}` ? null : `fi-${file.id}`)}
+                  className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary active:scale-95"
+                  aria-label={`Options for ${file.originalName}`}
                 >
-                  <Trash2 className="size-3.5" />
+                  <MoreVertical className="size-4" />
                 </button>
+                {openMenu === `fi-${file.id}` && (
+                  <div className="absolute right-0 top-9 z-20 w-44 overflow-hidden rounded-xl border border-hairline bg-white shadow-lg animate-rise">
+                    <a
+                      href={`/api/files/${file.id}/download`}
+                      className="flex w-full items-center gap-2 px-3.5 py-2.5 text-[0.82rem] text-foreground transition-colors hover:bg-secondary/50"
+                      onClick={() => setOpenMenu(null)}
+                    >
+                      <Download className="size-3.5" />
+                      Download
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onDeleteFile(file.id);
+                        setOpenMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2 px-3.5 py-2.5 text-[0.82rem] text-red-500 transition-colors hover:bg-red-50"
+                    >
+                      <Trash2 className="size-3.5" />
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

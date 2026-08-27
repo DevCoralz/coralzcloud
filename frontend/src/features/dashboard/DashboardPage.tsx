@@ -9,6 +9,7 @@ import { BottomNav } from "./components/BottomNav";
 import { RequireAuth } from "@/lib/auth/RequireAuth";
 import { useDashboard } from "./hooks/useDashboard";
 import { FolderCreateModal } from "@/components/ui/FolderCreateModal";
+import { FileCreateModal } from "@/components/ui/FileCreateModal";
 import { FileUploadModal } from "@/components/ui/FileUploadModal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
@@ -22,11 +23,13 @@ export function DashboardPage() {
     navigateToBreadcrumb,
     createFolder,
     deleteFolder,
+    createFile,
     uploadFiles,
     deleteFile,
   } = useDashboard();
 
   const [showCreateFolder, setShowCreateFolder] = useState(false);
+  const [showCreateFile, setShowCreateFile] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     type: "folder" | "file";
@@ -70,6 +73,7 @@ export function DashboardPage() {
             <QuickActions
               onUpload={() => setShowUpload(true)}
               onCreateFolder={() => setShowCreateFolder(true)}
+              onCreateFile={() => setShowCreateFile(true)}
             />
           </div>
           <FileBrowser
@@ -78,7 +82,6 @@ export function DashboardPage() {
             breadcrumbs={breadcrumbs}
             onNavigateToFolder={navigateToFolder}
             onNavigateToBreadcrumb={navigateToBreadcrumb}
-            onCreateFolder={() => setShowCreateFolder(true)}
             onUploadFile={() => setShowUpload(true)}
             onDeleteFolder={(id) => {
               const f = folders.find((x) => x.id === id);
@@ -106,6 +109,12 @@ export function DashboardPage() {
           open={showCreateFolder}
           onClose={() => setShowCreateFolder(false)}
           onSubmit={createFolder}
+        />
+
+        <FileCreateModal
+          open={showCreateFile}
+          onClose={() => setShowCreateFile(false)}
+          onSubmit={createFile}
         />
 
         <FileUploadModal

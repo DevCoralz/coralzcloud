@@ -52,5 +52,8 @@ export const storageApi = {
 
   getDownloadUrl: (id: number) => `/api/files/${id}/download`,
 
+  createFile: (name: string, folderId?: number | null) =>
+    api.post<FileEntry>("/files", { name, folderId: folderId ?? null }),
+
   deleteFile: (id: number) => api.del<void>(`/files/${id}`),
 };

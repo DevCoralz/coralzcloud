@@ -7,15 +7,39 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models.auth import User
-from app.schemas.storage import FileResponse, FileUploadResponse
+from app.schemas.storage import FileCreate, FileResponse, FileUploadResponse
 from app.services.file_service import FileService
 
 router = APIRouter(prefix="/api/files", tags=["files"])
 
 
+@router.post("", response_model=FileResponse, status_code=status.HTTP_201_CREATED)
+async def create_file(
+    payload: FileCreate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Create an empty file (metadata only, no Telegram upload)."""
+    from app.repositories.file_repo import FileRepository
+    from app.repositories.usage_repo import StorageUsageRepository
+
+    files_repo = FileRepository(db)
+    empty_name = payload.name if payload.name.endswith(".txt") else f"{payload.name}.txt"
+    record = files_repo.create(
+        user_id=user.id,
+        original_name=empty_name,
+        storage_key="",
+        mime_type=payload.mime_type,
+        size_bytes=0,
+        folder_id=payload.folder_id,
+    )
+    db.commit()
+    return record
+
+
 @router.post(
     "/upload",
-    response_model=FileUploadResponse,
+    response_model=list[FileUploadResponse],
     status_code=status.HTTP_201_CREATED,
 )
 async def upload_files(
@@ -33,7 +57,7 @@ async def upload_files(
     for f in files:
         content = await f.read()
         try:
-            record = svc.upload_file(
+            record = await svc.upload_file(
                 user_id=user.id,
                 file_bytes=content,
                 filename=f.filename or "unnamed",
@@ -43,6 +67,8 @@ async def upload_files(
             results.append(record)
         except ValueError as e:
             raise HTTPException(status_code=413, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
     return results
 
@@ -58,14 +84,14 @@ def list_files(
 
 
 @router.get("/{file_id}/download")
-def download_file(
+async def download_file(
     file_id: int,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     svc = FileService(db)
     try:
-        file_bytes, filename, mime_type = svc.download_file(user.id, file_id)
+        file_bytes, filename, mime_type = await svc.download_file(user.id, file_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
     except ValueError as e:
@@ -82,13 +108,13 @@ def download_file(
 
 
 @router.delete("/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_file(
+async def delete_file(
     file_id: int,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     svc = FileService(db)
     try:
-        svc.delete_file(user.id, file_id)
+        await svc.delete_file(user.id, file_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
