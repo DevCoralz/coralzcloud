@@ -1,17 +1,35 @@
 import { ArrowLeft, Camera, ChevronRight, Lock, Shield, User, CreditCard, LogOut } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useRef } from "react";
 import { RequireAuth } from "@/lib/auth/RequireAuth";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { api } from "@/lib/api/client";
 
 export function ProfilePage() {
   const { user, logout } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await api.upload("/profile/avatar", (() => {
+        const fd = new FormData();
+        fd.append("file", file);
+        return fd;
+      })());
+      window.location.reload();
+    } catch (err) {
+      console.error("Avatar upload failed", err);
+    }
+  };
 
   const sections = [
     {
       title: "Account",
       items: [
         { icon: User, label: "Personal Info", desc: "Name, username, email", to: "/profile/edit" },
-        { icon: Camera, label: "Profile Photo", desc: "Change your avatar" },
+        { icon: Camera, label: "Profile Photo", desc: "Change your avatar", onClick: () => fileInputRef.current?.click() },
       ],
     },
     {
@@ -44,29 +62,44 @@ export function ProfilePage() {
           </div>
         </header>
 
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarUpload}
+        />
+
         <main className="mx-auto max-w-2xl px-4 py-4 sm:px-6">
+          {/* Profile header */}
           <div className="mb-6 flex items-center gap-4">
-            <div className="flex size-16 items-center justify-center overflow-hidden rounded-full bg-foreground text-background">
-              {user?.displayName ? (
-                <span className="text-xl font-bold">{user.displayName.charAt(0).toUpperCase()}</span>
-              ) : (
-                <User className="size-7" />
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="group relative shrink-0"
+            >
+              <div className="flex size-16 items-center justify-center overflow-hidden rounded-full bg-foreground text-background">
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt="" className="size-full object-cover" />
+                ) : (
+                  <span className="text-xl font-bold">
+                    {user?.displayName?.charAt(0).toUpperCase() || "U"}
+                  </span>
+                )}
+              </div>
+              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                <Camera className="size-5 text-white" />
+              </span>
+            </button>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[1rem] font-semibold text-foreground">
                 {user?.displayName || user?.username || "User"}
               </p>
               <p className="truncate text-[0.85rem] text-muted-foreground">{user?.email}</p>
             </div>
-            <Link
-              to="/profile/edit"
-              className="text-[0.85rem] font-medium text-primary"
-            >
-              Edit
-            </Link>
           </div>
 
+          {/* Sections */}
           {sections.map((section) => (
             <div key={section.title} className="mb-6">
               <h2 className="mb-2 px-1 text-[0.78rem] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -76,40 +109,37 @@ export function ProfilePage() {
                 {section.items.map((item, i) => {
                   const Icon = item.icon;
                   const isLast = i === section.items.length - 1;
-                  return item.to ? (
-                    <Link
-                      key={item.label}
-                      to={item.to}
-                      className={`flex items-center gap-3 px-1 py-3.5 transition-colors hover:bg-secondary/40 ${
-                        !isLast ? "border-b border-hairline/60" : ""
-                      }`}
-                    >
+                  const content = (
+                    <>
                       <Icon className="size-5 text-muted-foreground" strokeWidth={1.8} />
                       <span className="flex-1">
                         <span className="block text-[0.9rem] font-medium text-foreground">{item.label}</span>
                         <span className="block text-[0.78rem] text-muted-foreground">{item.desc}</span>
                       </span>
                       <ChevronRight className="size-4 text-muted-foreground" />
-                    </Link>
-                  ) : (
+                    </>
+                  );
+
+                  const baseClass = `flex items-center gap-3 px-1 py-3.5 transition-colors hover:bg-secondary/40 ${
+                    !isLast ? "border-b border-hairline/60" : ""
+                  }`;
+
+                  if ("to" in item && item.to) {
+                    return (
+                      <Link key={item.label} to={item.to} className={baseClass}>
+                        {content}
+                      </Link>
+                    );
+                  }
+
+                  return (
                     <button
                       key={item.label}
                       type="button"
-                      onClick={() => {
-                        if (item.label === "Profile Photo") {
-                          document.getElementById("avatar-input")?.click();
-                        }
-                      }}
-                      className={`flex w-full items-center gap-3 px-1 py-3.5 text-left transition-colors hover:bg-secondary/40 ${
-                        !isLast ? "border-b border-hairline/60" : ""
-                      }`}
+                      onClick={"onClick" in item ? item.onClick : undefined}
+                      className={`${baseClass} w-full text-left`}
                     >
-                      <Icon className="size-5 text-muted-foreground" strokeWidth={1.8} />
-                      <span className="flex-1">
-                        <span className="block text-[0.9rem] font-medium text-foreground">{item.label}</span>
-                        <span className="block text-[0.78rem] text-muted-foreground">{item.desc}</span>
-                      </span>
-                      <ChevronRight className="size-4 text-muted-foreground" />
+                      {content}
                     </button>
                   );
                 })}
@@ -117,6 +147,7 @@ export function ProfilePage() {
             </div>
           ))}
 
+          {/* Logout */}
           <button
             type="button"
             onClick={async () => {

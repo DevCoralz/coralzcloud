@@ -52,10 +52,40 @@ def get_db():
         db.close()
 
 
+def _ensure_columns(engine) -> None:
+    """Add missing columns to existing tables without dropping anything."""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    columns_to_add = [
+        # (table, column_def, col_name_for_check)
+        ("users", "ALTER TABLE users ADD COLUMN avatar_url TEXT NULL", "avatar_url"),
+        ("users", "ALTER TABLE users ADD COLUMN plan_id INT NULL", "plan_id"),
+        ("plans", "ALTER TABLE plans ADD COLUMN max_upload_bytes BIGINT NOT NULL DEFAULT 1073741824", "max_upload_bytes"),
+        ("plans", "ALTER TABLE plans ADD COLUMN price_label VARCHAR(50) NULL", "price_label"),
+    ]
+
+    with engine.connect() as conn:
+        existing_tables = [r[0] for r in conn.execute(text("SHOW TABLES")).fetchall()]
+        for table, alter_sql, col_name in columns_to_add:
+            if table not in existing_tables:
+                continue
+            cols = [r[0] for r in conn.execute(text(f"SHOW COLUMNS FROM {table}")).fetchall()]
+            if col_name not in cols:
+                try:
+                    conn.execute(text(alter_sql))
+                    conn.commit()
+                    logger.info(f"[migrate] Added {col_name} to {table}")
+                except Exception as e:
+                    logger.warning(f"[migrate] Could not add {col_name} to {table}: {e}")
+
+
 def init_db() -> None:
     from app.models import auth, storage  # noqa: F401
 
-    Base.metadata.create_all(bind=get_engine())
+    engine = get_engine()
+    _ensure_columns(engine)
+    Base.metadata.create_all(bind=engine)
 
 
 def check_db() -> None:

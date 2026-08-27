@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react";
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { RequireAuth } from "@/lib/auth/RequireAuth";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -7,7 +7,6 @@ import { api } from "@/lib/api/client";
 
 export function EditProfilePage() {
   const { user } = useAuth();
-  const router = useRouter();
   const [fullName, setFullName] = useState(user?.displayName || "");
   const [username, setUsername] = useState(user?.username || "");
   const [email, setEmail] = useState(user?.email || "");
@@ -20,15 +19,18 @@ export function EditProfilePage() {
     setError("");
     setSuccess("");
     try {
-      await api.post("/profile/update", {
-        full_name: fullName,
-        username,
-        email,
-      });
-      setSuccess("Profile updated");
+      const result = await api.post<{ displayName: string; username: string; email: string }>(
+        "/profile/update",
+        {
+          full_name: fullName,
+          username: username,
+          email: email,
+        },
+      );
+      setSuccess("Profile updated successfully");
       setTimeout(() => setSuccess(""), 2000);
     } catch (err: any) {
-      setError(err?.message || "Failed to update");
+      setError(err?.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,7 @@ export function EditProfilePage() {
         <main className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-[0.82rem] font-medium text-muted-foreground">Full Name</label>
+              <label className="mb-1.5 block text-[0.82rem] font-medium text-muted-foreground">Full Name</label>
               <input
                 type="text"
                 value={fullName}
@@ -61,7 +63,7 @@ export function EditProfilePage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-[0.82rem] font-medium text-muted-foreground">Username</label>
+              <label className="mb-1.5 block text-[0.82rem] font-medium text-muted-foreground">Username</label>
               <input
                 type="text"
                 value={username}
@@ -70,7 +72,7 @@ export function EditProfilePage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-[0.82rem] font-medium text-muted-foreground">Email</label>
+              <label className="mb-1.5 block text-[0.82rem] font-medium text-muted-foreground">Email</label>
               <input
                 type="email"
                 value={email}
@@ -80,8 +82,12 @@ export function EditProfilePage() {
             </div>
           </div>
 
-          {error && <p className="mt-3 text-[0.82rem] text-red-500">{error}</p>}
-          {success && <p className="mt-3 text-[0.82rem] text-green-600">{success}</p>}
+          {error && (
+            <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-[0.82rem] text-red-500">{error}</p>
+          )}
+          {success && (
+            <p className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-[0.82rem] text-green-600">{success}</p>
+          )}
 
           <button
             type="button"
