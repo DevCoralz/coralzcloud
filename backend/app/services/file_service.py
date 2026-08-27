@@ -28,11 +28,27 @@ class FileService:
         self.usage = StorageUsageRepository(db)
 
     def validate_upload(self, size_bytes: int, user_id: int) -> None:
-        if size_bytes > MAX_FILE_SIZE_BYTES:
-            raise ValueError(f"File exceeds {MAX_FILE_SIZE_BYTES // (1024*1024*1024)} GB limit")
+        from app.models.auth import User
+        from app.models.storage import Plan
+
+        user = self.db.get(User, user_id)
+        if user and user.plan_id:
+            plan = self.db.get(Plan, user.plan_id)
+            if plan:
+                max_upload = plan.max_upload_bytes
+                storage_limit = plan.storage_limit_bytes
+            else:
+                max_upload = MAX_FILE_SIZE_BYTES
+                storage_limit = DEFAULT_STORAGE_LIMIT_BYTES
+        else:
+            max_upload = MAX_FILE_SIZE_BYTES
+            storage_limit = DEFAULT_STORAGE_LIMIT_BYTES
+
+        if size_bytes > max_upload:
+            raise ValueError(f"File exceeds plan upload limit of {max_upload // (1024*1024*1024)} GB")
 
         current = self.usage.get_or_create(user_id)
-        if current.used_bytes + size_bytes > DEFAULT_STORAGE_LIMIT_BYTES:
+        if current.used_bytes + size_bytes > storage_limit:
             raise ValueError("Storage limit reached. Please upgrade your plan.")
 
     async def upload_file(
@@ -88,9 +104,22 @@ class FileService:
         return self.files.list_root(user_id)
 
     def get_usage(self, user_id: int) -> dict:
+        from app.models.auth import User
+        from app.models.storage import Plan
+
         current = self.usage.get_or_create(user_id)
         used = current.used_bytes
-        limit = DEFAULT_STORAGE_LIMIT_BYTES
+
+        user = self.db.get(User, user_id)
+        if user and user.plan_id:
+            plan = self.db.get(Plan, user.plan_id)
+            if plan:
+                limit = plan.storage_limit_bytes
+            else:
+                limit = DEFAULT_STORAGE_LIMIT_BYTES
+        else:
+            limit = DEFAULT_STORAGE_LIMIT_BYTES
+
         percent = int((used / limit) * 100) if limit > 0 else 0
 
         return {

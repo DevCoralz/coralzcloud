@@ -11,14 +11,18 @@ import sys
 if __package__ in (None, ""):
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from sqlalchemy import select
+
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.admin import router as admin_router
 from app.api.auth import router as auth_router
 from app.api.files import router as files_router
 from app.api.folders import router as folders_router
+from app.api.profile import router as profile_router
 from app.api.storage import router as storage_router
 from app.core.config import settings
 from app.services.telegram import TelegramStorageService
@@ -91,6 +95,8 @@ app.include_router(auth_router)
 app.include_router(files_router)
 app.include_router(folders_router)
 app.include_router(storage_router)
+app.include_router(profile_router)
+app.include_router(admin_router)
 
 
 @app.on_event("startup")
@@ -99,6 +105,28 @@ async def start_telegram_storage():
     # same lesson as Elcoral's start_telegram_storage: a slow/misconfigured
     # Telegram session must never delay the health check from coming up.
     app.state.telegram_storage = TelegramStorageService()
+
+
+@app.on_event("startup")
+async def seed_default_plans():
+    """Seed default plans if they do not already exist."""
+    from app.db.session import get_session_factory
+    from app.models.storage import Plan
+
+    defaults = [
+        {"name": "Free", "storage_limit_bytes": 5 * 1024 * 1024 * 1024, "max_upload_bytes": 1 * 1024 * 1024 * 1024, "price_label": None},
+        {"name": "Pro", "storage_limit_bytes": 500 * 1024 * 1024 * 1024, "max_upload_bytes": 2 * 1024 * 1024 * 1024, "price_label": None},
+        {"name": "Business", "storage_limit_bytes": 1024 * 1024 * 1024 * 1024, "max_upload_bytes": 4 * 1024 * 1024 * 1024, "price_label": None},
+    ]
+    db = get_session_factory()()
+    try:
+        for plan_data in defaults:
+            existing = db.scalar(select(Plan).where(Plan.name == plan_data["name"]))
+            if not existing:
+                db.add(Plan(**plan_data))
+        db.commit()
+    finally:
+        db.close()
 
 
 @app.get("/healthz")

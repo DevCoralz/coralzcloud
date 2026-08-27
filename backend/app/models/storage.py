@@ -56,6 +56,8 @@ class Plan(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
     storage_limit_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    max_upload_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False, default=2 * 1024 * 1024 * 1024)
+    price_label: Mapped[str | None] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
 
 

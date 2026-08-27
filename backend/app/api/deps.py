@@ -29,3 +29,12 @@ def get_current_user(
     if user is None or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
     return user
+
+
+def get_admin_user(
+    user: User = Depends(get_current_user),
+) -> User:
+    admin_list = [e.strip().lower() for e in settings.admin_emails.split(",") if e.strip()]
+    if user.email.lower() not in admin_list:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    return user

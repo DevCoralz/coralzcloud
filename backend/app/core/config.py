@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     # Empty = auto-derive from node_env (see cookie_secure/cookie_samesite).
     auth_cookie_secure: str = ""
     auth_cookie_samesite: str = ""
+    admin_emails: str = ""
+    admin_slug: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",

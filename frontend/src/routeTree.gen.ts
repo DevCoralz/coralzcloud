@@ -10,13 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ProfileEditRouteImport } from './routes/profile.edit'
+import { Route as ProfilePasswordRouteImport } from './routes/profile.password'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -29,43 +39,109 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileEditRoute = ProfileEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfilePasswordRoute = ProfilePasswordRouteImport.update({
+  id: '/password',
+  path: '/password',
+  getParentRoute: () => ProfileRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/register': typeof RegisterRoute
+  '/profile/edit': typeof ProfileEditRoute
+  '/profile/password': typeof ProfilePasswordRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/register': typeof RegisterRoute
+  '/profile/edit': typeof ProfileEditRoute
+  '/profile/password': typeof ProfilePasswordRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/register': typeof RegisterRoute
+  '/profile/edit': typeof ProfileEditRoute
+  '/profile/password': typeof ProfilePasswordRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/login' | '/register'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/dashboard'
+    | '/login'
+    | '/pricing'
+    | '/profile'
+    | '/register'
+    | '/profile/edit'
+    | '/profile/password'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/login' | '/register'
-  id: '__root__' | '/' | '/dashboard' | '/login' | '/register'
+  to:
+    | '/'
+    | '/admin'
+    | '/dashboard'
+    | '/login'
+    | '/pricing'
+    | '/profile'
+    | '/register'
+    | '/profile/edit'
+    | '/profile/password'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/dashboard'
+    | '/login'
+    | '/pricing'
+    | '/profile'
+    | '/register'
+    | '/profile/edit'
+    | '/profile/password'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
+  PricingRoute: typeof PricingRoute
+  ProfileRoute: typeof ProfileRouteWithChildren
   RegisterRoute: typeof RegisterRoute
 }
 
@@ -76,6 +152,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -92,6 +175,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -99,13 +196,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile/edit': {
+      id: '/profile/edit'
+      path: '/edit'
+      fullPath: '/profile/edit'
+      preLoaderRoute: typeof ProfileEditRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/password': {
+      id: '/profile/password'
+      path: '/password'
+      fullPath: '/profile/password'
+      preLoaderRoute: typeof ProfilePasswordRouteImport
+      parentRoute: typeof ProfileRoute
+    }
   }
 }
 
+interface ProfileRouteChildren {
+  ProfileEditRoute: typeof ProfileEditRoute
+  ProfilePasswordRoute: typeof ProfilePasswordRoute
+}
+
+const ProfileRouteChildren: ProfileRouteChildren = {
+  ProfileEditRoute: ProfileEditRoute,
+  ProfilePasswordRoute: ProfilePasswordRoute,
+}
+
+const ProfileRouteWithChildren =
+  ProfileRoute._addFileChildren(ProfileRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
+  PricingRoute: PricingRoute,
+  ProfileRoute: ProfileRouteWithChildren,
   RegisterRoute: RegisterRoute,
 }
 export const routeTree = rootRouteImport
