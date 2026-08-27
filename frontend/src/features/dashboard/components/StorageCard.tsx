@@ -1,10 +1,14 @@
 import { Crown } from "lucide-react";
-import { storage } from "../data";
+import type { StorageUsage } from "@/lib/api/storage";
 
-export function StorageCard() {
+type Props = {
+  usage: StorageUsage;
+};
+
+export function StorageCard({ usage }: Props) {
   const r = 34;
   const c = 2 * Math.PI * r;
-  const dash = (storage.percent / 100) * c;
+  const dash = (usage.percent / 100) * c;
 
   return (
     <section
@@ -35,26 +39,26 @@ export function StorageCard() {
           />
         </svg>
         <span className="absolute inset-0 flex items-center justify-center text-[0.9rem] font-bold sm:text-[1rem]">
-          {storage.percent}%
+          {usage.percent}%
         </span>
       </div>
 
       <div className="min-w-0 flex-1">
         <p className="text-[0.82rem] font-medium opacity-85 sm:text-[0.88rem]">Storage Used</p>
         <p className="mt-0.5 whitespace-nowrap font-bold leading-none text-[1.2rem] sm:text-[1.35rem]">
-          {storage.usedLabel}
+          {usage.usedLabel}
           <span className="ml-1 text-[0.82rem] sm:text-[0.9rem] font-medium opacity-80">
-            / {storage.totalLabel}
+            / {usage.totalLabel}
           </span>
         </p>
         <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-primary-foreground/25">
           <div
             className="h-full rounded-full bg-primary-foreground transition-all duration-1000"
-            style={{ width: `${storage.percent}%` }}
+            style={{ width: `${usage.percent}%` }}
           />
         </div>
         <p className="mt-1.5 whitespace-nowrap text-[0.78rem] opacity-85 sm:text-[0.82rem]">
-          {storage.percent}% used • {storage.freeLabel}
+          {usage.percent}% used • {usage.freeLabel}
         </p>
       </div>
 

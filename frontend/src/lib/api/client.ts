@@ -94,7 +94,35 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return data as T;
 }
 
+async function del<T>(path: string): Promise<T> {
+  const init: RequestInit = { method: "DELETE", credentials: "include" };
+  const response = await fetch(`${API_URL}${path}`, init);
+  if (!response.ok) {
+    const isJson = response.headers.get("content-type")?.includes("application/json");
+    const data = isJson ? await response.json().catch(() => null) : null;
+    throw new ApiError(data?.error?.message || "Something went wrong.", { status: response.status });
+  }
+  if (response.status === 204) return undefined as T;
+  return response.json() as Promise<T>;
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) => request<T>(path, { method: "POST", body }),
+  del: <T>(path: string) => del<T>(path),
+  upload: <T>(path: string, formData: FormData) => upload<T>(path, formData),
 };
+
+async function upload<T>(path: string, formData: FormData): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+  });
+  const isJson = response.headers.get("content-type")?.includes("application/json");
+  const data = isJson ? await response.json().catch(() => null) : null;
+  if (!response.ok) {
+    throw new ApiError(data?.error?.message || "Upload failed.", { status: response.status });
+  }
+  return data as T;
+}

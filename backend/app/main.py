@@ -17,6 +17,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.auth import router as auth_router
+from app.api.files import router as files_router
+from app.api.folders import router as folders_router
+from app.api.storage import router as storage_router
 from app.core.config import settings
 from app.services.telegram import TelegramStorageService
 
@@ -85,6 +88,9 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(files_router)
+app.include_router(folders_router)
+app.include_router(storage_router)
 
 
 @app.on_event("startup")
