@@ -7,6 +7,7 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from app.repositories.folder_repo import FolderRepository
+from app.repositories.file_repo import FileRepository
 
 
 class FolderService:
@@ -35,13 +36,18 @@ class FolderService:
         return self.folders.list_root(user_id)
 
     def delete_folder(self, user_id: int, folder_id: int) -> None:
-        """Delete a folder. Raises if not found or has children."""
+        """Delete a folder. Raises if not found, has children, or has files."""
         folder = self.folders.get_by_id(folder_id, user_id)
         if folder is None:
             raise FileNotFoundError("Folder not found")
 
         if self.folders.has_children(folder_id):
             raise ValueError("Cannot delete folder that contains subfolders")
+
+        files_repo = FileRepository(self.db)
+        files_in_folder = files_repo.list_in_folder(user_id, folder_id)
+        if files_in_folder:
+            raise ValueError(f"Cannot delete folder: it contains {len(files_in_folder)} file(s). Move or delete them first.")
 
         self.folders.delete(folder)
         self.db.commit()

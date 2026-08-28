@@ -88,7 +88,7 @@ def create_or_update_plan(
     return PlanResponse.model_validate(plan)
 
 @router.get("/slug")
-async def get_admin_slug():
-    """Return the admin page slug (for frontend routing)."""
+async def get_admin_slug(user: User = Depends(get_admin_user)):
+    """Return the admin page slug (for frontend routing). Only admins."""
     from app.core.config import settings
     return {"slug": settings.admin_slug}
